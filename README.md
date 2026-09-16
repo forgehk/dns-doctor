@@ -2,7 +2,7 @@
 
 > One command to audit a domain's DNS, TLS, email-auth, and HTTP-security posture. Gives you a letter grade and a punch list.
 
-[![Python](https://img.shields.io/badge/Python-3.11+-3776AB.svg)]() [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![CI](https://github.com/forgehk/dns-doctor/actions/workflows/ci.yml/badge.svg)](https://github.com/forgehk/dns-doctor/actions/workflows/ci.yml) [![Python](https://img.shields.io/badge/Python-3.11+-3776AB.svg)]() [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
@@ -18,7 +18,8 @@ and get back a graded report covering:
 
 | Check | What it looks for |
 |---|---|
-| **DNS** | A / AAAA / MX / NS / CAA records, response sanity, mismatched NS |
+| **DNS** | A / AAAA / MX / NS records, response sanity |
+| **CAA** | Which CAs may issue, `iodef` contact, deny-all and critical-flag misconfigurations |
 | **TLS** | Cert validity, chain, hostname match, expiry window, key size, weak ciphers |
 | **SPF** | Present, syntactically valid, hard fail at the end, no `+all` traps |
 | **DKIM** | Common selectors (`google`, `selector1`, `default`, `k1`, `mailo`), key size |
@@ -37,6 +38,7 @@ Every check ends in a single letter grade: `A`, `B`, `C`, `D`, `F`.
 dns-doctor audit example.com
 
   DNS         A   apex resolves · 4 A records · MX records present
+  CAA         B   authorises letsencrypt.org, no iodef contact
   TLS         A   valid, 84 days remaining, 2048-bit RSA, chain ok
   SPF         B   present, but ends in '~all' instead of '-all'
   DKIM        A   selector 'google' present, 2048-bit key
@@ -67,7 +69,8 @@ It's also a good showpiece for **AppSec / DevSecOps** interviews because it ties
 ## Install & run
 
 ```bash
-pip install dns-doctor
+git clone https://github.com/forgehk/dns-doctor.git && cd dns-doctor
+pip install -e .
 
 # basic
 dns-doctor audit darkforgeai.com
@@ -90,7 +93,8 @@ dns_doctor/
 ├── cli.py              # argparse entry point
 ├── audit.py            # orchestrator — runs each check, builds report
 ├── checks/
-│   ├── dns_records.py  # A / AAAA / MX / NS / CAA
+│   ├── dns_records.py  # A / AAAA / MX / NS
+│   ├── caa.py          # CAA: authorised issuers, iodef, misconfigurations
 │   ├── tls.py          # cert chain, expiry, key size
 │   ├── spf.py          # parse SPF TXT, grade end-mechanism
 │   ├── dkim.py         # selector lookup + key validation
@@ -112,7 +116,7 @@ Each `checks/*` module exposes a single `run(domain) -> CheckResult`. Adding a n
 - [x] JSON output
 - [ ] BIMI (Brand Indicators for Message Identification)
 - [ ] Subdomain takeover detection (CNAME-to-dangling-cloud-resource)
-- [ ] CAA misconfiguration warnings
+- [x] CAA misconfiguration warnings
 - [ ] HTML report with diffs over time
 - [ ] GitHub Action wrapper
 
