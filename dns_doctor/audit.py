@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .checks import run_dns, run_spf, run_dmarc, run_headers
+from .checks import run_dns, run_caa, run_spf, run_dmarc, run_headers
 from .report import Report
 
 def audit(domain: str) -> Report:
@@ -10,6 +10,7 @@ def audit(domain: str) -> Report:
     domain = domain.strip().lower().rstrip(".")
     report = Report(domain=domain)
     report.checks.append(run_dns(domain))
+    report.checks.append(run_caa(domain))
     report.checks.append(run_spf(domain))
     report.checks.append(run_dmarc(domain))
     report.checks.append(run_headers(domain))
